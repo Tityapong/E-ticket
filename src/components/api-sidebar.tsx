@@ -5,7 +5,6 @@ import Link from "next/link"
 import { ChevronDown } from "lucide-react"
 import { useState } from "react"
 
-// Navigation items for the API Integration section
 const apiIntegrationItems = [
   { href: "/services/general", label: "General" },
   { href: "/services/create-transaction", label: "Create Transaction" },

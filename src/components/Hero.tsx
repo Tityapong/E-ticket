@@ -1,76 +1,4 @@
 
-// import Link from "next/link"
-// import { Globe } from "lucide-react"
-
-// export default function Home() {
-//   return (
-//     <div className="min-h-screen bg-white">
-//       <header className="container mx-auto px-4 py-4 flex items-center justify-between">
-//         <div className="flex items-center">
-//           <Link href="/" className="flex items-center">
-//             <span className="text-[#2d5b6b] font-bold text-2xl">ABA'</span>
-//             <span className="text-[#2d5b6b] font-bold italic text-2xl">PAY</span>
-//             <span className="text-[#37bed5] font-bold italic text-2xl">WAY</span>
-//           </Link>
-//         </div>
-
-//         <nav className="hidden md:flex items-center space-x-8">
-//           <Link href="#products" className="text-gray-800 hover:text-[#5dc0d1] font-medium">
-//             Products
-//           </Link>
-//           <Link href="#developers" className="text-gray-800 hover:text-[#5dc0d1] font-medium">
-//             Developers
-//           </Link>
-//           <Link href="#about" className="text-gray-800 hover:text-[#5dc0d1] font-medium">
-//             About Us
-//           </Link>
-//           <Link href="#apply" className="text-gray-800 hover:text-[#5dc0d1] font-medium">
-//             Apply Now
-//           </Link>
-//         </nav>
-
-//         <div className="flex items-center space-x-4">
-//           <button className="p-2 border border-[#5dc0d1] rounded-md text-[#5dc0d1]">
-//             <Globe size={20} />
-//           </button>
-//           <button className="px-6 py-2 border border-[#37bed5] rounded-md text-[#5dc0d1] hover:bg-[#37bed5] hover:text-white transition-colors">
-//             Login
-//           </button>
-//         </div>
-//       </header>
-
-//       <main className="container mx-auto px-4 py-16">
-//         <div className="flex flex-col md:flex-row items-center">
-//           <div className="md:w-1/2 mb-10 md:mb-0">
-//             <h1 className="text-5xl md:text-6xl font-bold text-[#4a4a4a] mb-2">Payment Solution</h1>
-//             <h2 className="text-5xl md:text-6xl font-bold text-[#37bed5] mb-6">All-In-One</h2>
-//             <p className="text-lg text-gray-700 mb-8 max-w-md">
-//               Boost your sales by providing seamless payment experience to your clients.
-//             </p>
-//             <button className="px-8 py-4 bg-[#5dc0d1] text-white rounded-md hover:bg-[#4ba3b3] transition-colors">
-//               Explore Now
-//             </button>
-//           </div>
-
-//           <div className="md:w-1/2">
-//             <video
-//               src="/animate.mp4"
-//               width={600}
-//               height={450}
-//               className="w-full h-auto rounded-lg"
-//               autoPlay
-//               loop
-//               muted
-//               playsInline
-//               controls
-//             />
-//           </div>
-//         </div>
-//       </main>
-//     </div>
-//   )
-// }
-
 
 "use client"
 
@@ -217,8 +145,7 @@ export default function Hero() {
           ) : (
             <svg viewBox="0 0 800 600" className="w-full h-full new-svg" aria-hidden="true">
               <g transform="translate(400, 300) scale(0.8)">
-                {/* New SVG content: Ticket purchase confirmation */}
-                {/* Ticket stub background */}
+              
                 <rect
                   x="-150"
                   y="-100"
