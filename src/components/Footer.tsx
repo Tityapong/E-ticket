@@ -84,7 +84,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="#" className="text-gray-700 hover:text-teal-500"> {/* Changed from indigo-600 to teal-500 */}
-                  Who're We?
+                  Who are We?
                 </Link>
               </li>
               <li>
@@ -160,7 +160,7 @@ export default function Footer() {
           <div className="text-gray-600 mb-4 md:mb-0">
             ©Copyright{" "}
             <Link href="" className="text-teal-500 hover:underline"> {/* Changed from indigo-600 to teal-500 */}
-            Tix'Central.com
+            Tix Central.com
             </Link>{" "}
             All rights reserved. 2024
           </div>

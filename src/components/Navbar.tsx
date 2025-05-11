@@ -189,7 +189,7 @@ export default function Navbar() {
       <div className="flex items-center">
         <Link href="/" className="text-2xl font-bold">
           <span className="text-slate-700">Tix</span>
-          <span className="text-teal-500">'Central</span>
+          <span className="text-teal-500">Central</span>
         </Link>
       </div>
 

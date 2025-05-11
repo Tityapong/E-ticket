@@ -20,7 +20,7 @@ export default function AboutUsSection() {
 
             <div>
               <p className="text-base sm:text-lg text-gray-700">
-                <span className="font-semibold">ABA Bank, Cambodia's leading commercial bank,</span> provides
+                <span className="font-semibold">ABA Bank, Cambodia is leading commercial bank,</span> provides
                 individuals and businesses with innovative and reliable financial solutions. With a nationwide presence
                 through its extensive branch network, advanced self- banking facilities, and cutting-edge digital
                 channels, ABA Bank ensures that customers have seamless access to a full suite of financial services.
