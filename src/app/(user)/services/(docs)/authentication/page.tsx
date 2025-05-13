@@ -60,7 +60,7 @@ export default function AuthenticationPage() {
               </tr>
               <tr className="border-t">
                 <td className="py-3 px-4">404 - Not Found</td>
-                <td className="py-3 px-4">The requested resource doesn't exist</td>
+                <td className="py-3 px-4">The requested resource does not exist</td>
               </tr>
               <tr className="border-t bg-gray-50">
                 <td className="py-3 px-4">429 - Too Many Requests</td>

@@ -28,7 +28,7 @@ export default function RegisterPage() {
 
     try {
       // Replace with your actual API endpoint
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/register`, {
+       await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/register`, {
         name, 
         email,
         password,

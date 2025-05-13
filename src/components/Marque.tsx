@@ -1,7 +1,8 @@
-"use client"; // Add this at the top for client-side rendering in Next.js
+"use client"
 
-import { cn } from "@/lib/utils";
-import Marquee from "react-fast-marquee";
+import Image from "next/image"
+import { cn } from "@/lib/utils"
+import Marquee from "react-fast-marquee"
 
 const reviews = [
   { name: "Jack", username: "@jack", body: "I've never seen anything like this before. It's amazing. I love it.", img: "https://avatar.vercel.sh/jack" },
@@ -16,23 +17,21 @@ const reviews = [
   { name: "James", username: "@james", body: "I'm at a loss for words. This is amazing. I love it.", img: "https://avatar.vercel.sh/james" },
   { name: "James7", username: "@james", body: "I'm at a loss for words. This is amazing. I love it.", img: "https://avatar.vercel.sh/james" },
   { name: "James58", username: "@james", body: "I'm at a loss for words. This is amazing. I love it.", img: "https://avatar.vercel.sh/james" },
-];
+]
 
-const firstRow = reviews.slice(0, reviews.length / 2);
-const secondRow = reviews.slice(reviews.length / 2);
+const firstRow = reviews.slice(0, reviews.length / 2)
+const secondRow = reviews.slice(reviews.length / 2)
 
 const ReviewCard = ({
   img,
   name,
   username,
   body,
-  index,  // Adding index as part of the key
 }: {
-  img: string;
-  name: string;
-  username: string;
-  body: string;
-  index: number; // Receive the index
+  img: string
+  name: string
+  username: string
+  body: string
 }) => {
   return (
     <figure
@@ -43,7 +42,7 @@ const ReviewCard = ({
       )}
     >
       <div className="flex flex-row items-center gap-2">
-        <img
+        <Image
           className="rounded-full"
           width={32}
           height={32}
@@ -57,8 +56,8 @@ const ReviewCard = ({
       </div>
       <blockquote className="mt-2 text-sm">{body}</blockquote>
     </figure>
-  );
-};
+  )
+}
 
 export function MarqueeDemo() {
   return (
@@ -66,23 +65,23 @@ export function MarqueeDemo() {
       {/* First Marquee - Left to Right */}
       <Marquee
         pauseOnHover
-        speed={20} // Replaced [--duration:20s] with speed prop
-        className="py-4" // Added padding for better spacing
+        speed={20}
+        className="py-4"
       >
         {firstRow.map((review, index) => (
-          <ReviewCard key={`${review.username}-${index}`} {...review} index={index} />
+          <ReviewCard key={`${review.username}-${index}`} {...review} />
         ))}
       </Marquee>
 
       {/* Second Marquee - Right to Left */}
       <Marquee
         pauseOnHover
-        direction="right" // Scrolls from right to left
-        speed={20} // Replaced [--duration:20s] with speed prop
+        direction="right"
+        speed={20}
         className="py-4"
       >
         {secondRow.map((review, index) => (
-          <ReviewCard key={`${review.username}-${index}`} {...review} index={index} />
+          <ReviewCard key={`${review.username}-${index}`} {...review} />
         ))}
       </Marquee>
 
@@ -90,5 +89,5 @@ export function MarqueeDemo() {
       <div className="pointer-events-none absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-background" />
       <div className="pointer-events-none absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l from-background" />
     </div>
-  );
+  )
 }
