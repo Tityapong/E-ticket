@@ -1,10 +1,8 @@
-
 "use client"
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import Image from "next/image"
-import { LayoutDashboard, Users, Home, X, Contact, Folder, ShoppingCartIcon, TicketIcon, CreditCardIcon, TagIcon } from 'lucide-react'
+import { LayoutDashboard, Users, Home, X, Folder, ShoppingCartIcon, TicketIcon, CreditCardIcon, TagIcon } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
@@ -24,7 +22,7 @@ const menuItems = [
     href: "/admin/dashboard/crud-event",
     icon: LayoutDashboard
   },
-    {
+  {
     name: "Order",
     href: "/admin/dashboard/order",
     icon: ShoppingCartIcon
@@ -44,7 +42,7 @@ const menuItems = [
     href: "/admin/dashboard/ticket-type",
     icon: TicketIcon
   },
-    {
+  {
     name: "Discount",
     href: "/admin/dashboard/discount",
     icon: TagIcon
@@ -99,14 +97,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
 
           {/* Sidebar Header */}
-
-            
           <div className="text-2xl font-bold ml-4 mt-4">
             <span className="text-slate-700">Tix</span>
             <span className="text-teal-500">Central</span>
           </div>
-
-          
 
           {/* Navigation */}
           <nav className="flex-1 px-3 py-4">

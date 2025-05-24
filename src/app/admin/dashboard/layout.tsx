@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, User } from '@/lib/auth'  // <-- import User type
 import Sidebar from '../components/SideBar'
 import Header from '../components/Header'
 
@@ -14,7 +14,7 @@ export default function DashboardLayout({
   const router = useRouter()
   const [isMounted, setIsMounted] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)  // <-- use imported User type
 
   useEffect(() => {
     const user = getCurrentUser()
