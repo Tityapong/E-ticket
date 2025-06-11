@@ -18,28 +18,8 @@ const sections = [
       { href: "/payment-link", label: "Payment Link" },
     ],
   },
-  {
-    title: "PayWay Plugins",
-    links: [
-      { href: "/woocommerce", label: "WooCommerce" },
-      { href: "/prestashop", label: "PrestaShop" },
-    ],
-  },
-  {
-    title: "Design Guidelines",
-    links: [
-      { href: "/merchant-integration", label: "Merchant integration guideline" },
-      { href: "/credential-files", label: "Credential on files" },
-      { href: "/qr-invoice", label: "QR on Invoice" },
-    ],
-  },
-  {
-    title: "Other",
-    links: [
-      { href: "/register", label: "Register" },
-      { href: "/test-card-number", label: "Test Card Number" },
-    ],
-  },
+
+
 ]
 
 export default function DocumentationNav() {

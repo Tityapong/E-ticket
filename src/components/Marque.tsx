@@ -1,6 +1,6 @@
 "use client"
 
-import Image from "next/image"
+
 import { cn } from "@/lib/utils"
 import Marquee from "react-fast-marquee"
 
@@ -42,7 +42,7 @@ const ReviewCard = ({
       )}
     >
       <div className="flex flex-row items-center gap-2">
-        <Image
+        <img
           className="rounded-full"
           width={32}
           height={32}

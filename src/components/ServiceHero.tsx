@@ -11,7 +11,7 @@ export default function ServicesHero() {
         {/* Left Content */}
         <div className="space-y-8">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-700 tracking-tight">
-            PayWay Developer Suite
+            E-Ticket Provider
           </h1>
           <p className="text-xl text-gray-600 max-w-xl">
             Here you&apos;ll find detailed documentation and references to help you integrate PayWay APIs on your

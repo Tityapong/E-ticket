@@ -21,7 +21,7 @@ export default function AuthenticationPage() {
   
           <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm mb-6 overflow-x-auto">
             <pre>{`// Example using fetch API
-  fetch('https://api.yourdomain.com/v1/users', {
+  fetch('https://etickets.ticket.publicvm.com/api/', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
