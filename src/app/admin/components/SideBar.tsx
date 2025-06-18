@@ -28,11 +28,6 @@ const menuItems = [
     icon: ShoppingCartIcon
   },
   {
-    name: "Payment",
-    href: "/admin/dashboard/payment",
-    icon: CreditCardIcon
-  },
-  {
     name: "Add Category",
     href: "/admin/dashboard/add-category",
     icon: Folder 

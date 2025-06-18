@@ -43,8 +43,8 @@ const discountSchema = z.object({
   event_id: z.number().int().min(1, "Event ID is required and must be a positive number"),
   discount_code: z
     .string()
-    .min(1, "Discount code is required") // Changed message back to "Discount code"
-    .max(50, "Discount code must be less than 50 characters") // Changed message back
+    .min(1, "Discount code is required")
+    .max(50, "Discount code must be less than 50 characters")
     .transform((code) => code.trim()),
   discount_percentage: z.number().min(0, "Discount percentage cannot be negative").max(100, "Discount percentage cannot exceed 100%"),
   start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Start date must be in YYYY-MM-DD format"),
@@ -69,7 +69,8 @@ const checkDuplicateDiscount = (
   );
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+// Ensure API_URL is correctly set.
+const API_URL = process.env.NEXT_PUBLIC_API_URL 
 
 export default function DiscountManager() {
   const [discountCodes, setDiscountCodes] = useState<DiscountCode[]>([]);
@@ -78,8 +79,8 @@ export default function DiscountManager() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentDiscount, setCurrentDiscount] = useState<DiscountCode | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [token, setToken] = useState<string | null>(null);
-  const [eventSearchName, setEventSearchName] = useState<string | null>(null);
+
+  const [eventSearchName, setEventSearchName] = useState<string | null>(null); // State to display event name
 
   // Form state for creating/editing
   const [formData, setFormData] = useState<
@@ -93,46 +94,43 @@ export default function DiscountManager() {
   });
 
   // --- Auth Token Fetch ---
-  useEffect(() => {
-    const fetchToken = async () => {
-      const savedToken = await getAuthToken();
-      setToken(savedToken);
-    };
-    fetchToken();
-  }, []);
+
 
   // --- API Calls ---
-
-  // Fetch events. Using process.env directly here as you had in your snippet.
+const token = getAuthToken();
+  // Fetch events.
   const fetchEvents = useCallback(async () => {
     if (!token) {
       console.warn("No token available for fetching events.");
       return;
     }
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/events`, { // Corrected endpoint for events
+      // Use API_URL consistently for all fetches
+      const response = await fetch(`${API_URL}/api/events`, { // Corrected endpoint for events
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
       if (!response.ok) {
-        throw new Error("Failed to fetch events.");
+        const errorData = await response.json().catch(() => ({ message: "Unknown error" }));
+        throw new Error(`Failed to fetch events: ${errorData.message || response.statusText}`);
       }
       const data = await response.json();
       setEvents(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching events:", error);
+      toast.error(error.message || "Failed to fetch events.");
     }
-  }, [token]);
+  }, [token]); // Dependency array includes token
 
-  const fetchDiscountCodes = async () => {
+  const fetchDiscountCodes = useCallback(async () => {
     if (!token) {
       toast.error("You must be logged in to view discounts.");
       setIsLoading(false);
       return;
     }
-    setIsLoading(true);
+ 
     try {
       const response = await fetch(`${API_URL}/api/discounts`, {
         headers: {
@@ -147,18 +145,22 @@ export default function DiscountManager() {
       }
       const data = await response.json();
 
-      const formattedDiscountCodes: DiscountCode[] = data.map((dc: any) => ({
-        id: dc.id,
-        event_id: dc.event_id,
-        discount_code: dc.discount_code,
-        discount_percentage: parseFloat(dc.discount_percentage),
-        start_date: dc.start_date,
-        end_date: dc.end_date,
-        created_at: new Date(dc.created_at).toLocaleString(),
-        updated_at: new Date(dc.updated_at).toLocaleString(),
-        // Crucially, if event data comes nested, use it. Otherwise, we'll find it from 'events' state.
-        event: dc.event || events.find(e => e.id === dc.event_id),
-      }));
+      const formattedDiscountCodes: DiscountCode[] = data.map((dc: any) => {
+        // Find the event details from the 'events' state for display
+        const linkedEvent = events.find(e => e.id === dc.event_id);
+        return {
+          id: dc.id,
+          event_id: dc.event_id,
+          discount_code: dc.discount_code,
+          discount_percentage: parseFloat(dc.discount_percentage),
+          start_date: dc.start_date,
+          end_date: dc.end_date,
+          created_at: new Date(dc.created_at).toLocaleString(),
+          updated_at: new Date(dc.updated_at).toLocaleString(),
+          // Prioritize nested event data if available from API, otherwise use local lookup
+          event: dc.event || linkedEvent,
+        };
+      });
 
       setDiscountCodes(formattedDiscountCodes);
     } catch (error: any) {
@@ -167,7 +169,7 @@ export default function DiscountManager() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [token, events]); // Dependency array includes token and events
 
   const createDiscount = async () => {
     if (!token) {
@@ -185,7 +187,7 @@ export default function DiscountManager() {
     const { event_id, discount_code, discount_percentage, start_date, end_date } = validationResult.data;
 
     if (checkDuplicateDiscount(discount_code, event_id, discountCodes)) {
-      toast.error("A discount code with this name already exists for this event."); // Changed message back
+      toast.error("A discount code with this name already exists for this event.");
       return;
     }
 
@@ -199,7 +201,7 @@ export default function DiscountManager() {
         body: JSON.stringify({
           event_id,
           discount_code,
-          discount_percentage: discount_percentage.toFixed(2),
+          discount_percentage: discount_percentage.toFixed(2), // Ensure two decimal places for backend
           start_date,
           end_date,
         }),
@@ -253,7 +255,7 @@ export default function DiscountManager() {
     if (
       checkDuplicateDiscount(discount_code, event_id, discountCodes, currentDiscount.id)
     ) {
-      toast.error("A discount code with this name already exists for this event."); // Changed message back
+      toast.error("A discount code with this name already exists for this event.");
       return;
     }
 
@@ -267,7 +269,7 @@ export default function DiscountManager() {
         body: JSON.stringify({
           event_id,
           discount_code,
-          discount_percentage: discount_percentage.toFixed(2),
+          discount_percentage: discount_percentage.toFixed(2), // Ensure two decimal places for backend
           start_date,
           end_date,
         }),
@@ -280,8 +282,8 @@ export default function DiscountManager() {
 
       const result = await response.json();
       const updatedDiscountData: DiscountCode = {
-        ...currentDiscount,
-        id: result.id,
+        ...currentDiscount, // Keep existing fields not returned by API (e.g., created_at if not updated)
+        id: result.id, // Update ID in case it changes (though unlikely for PUT)
         event_id: result.event_id,
         discount_code: result.discount_code,
         discount_percentage: parseFloat(result.discount_percentage),
@@ -341,24 +343,26 @@ export default function DiscountManager() {
   useEffect(() => {
     if (token) {
       // Fetch events first, then discount codes, to ensure event names are available
-      fetchEvents().then(() => {
-        fetchDiscountCodes();
+      // Using Promise.all to fetch them concurrently for better performance
+      Promise.all([fetchEvents(), fetchDiscountCodes()]).catch(error => {
+        console.error("Error during initial data fetch:", error);
+        toast.error("Failed to load initial data (events/discounts).");
       });
     } else {
-      setIsLoading(false);
+      setIsLoading(false); // If no token, stop loading
     }
-  }, [token, fetchEvents]);
+  }, [token, fetchEvents, fetchDiscountCodes]); // Added fetchDiscountCodes to dependencies
 
+  // Effect to look up event name when event_id changes in form data
   useEffect(() => {
-    // When formData.event_id changes, find and set the event name
-    if (formData.event_id > 0 && events.length > 0) {
-      const foundEvent = events.find(event => event.id === formData.event_id);
+    const numericEventId = Number(formData.event_id); // Ensure it's a number
+    if (numericEventId > 0 && events.length > 0) {
+      const foundEvent = events.find(event => event.id === numericEventId);
       setEventSearchName(foundEvent ? foundEvent.event_name : "Event not found");
     } else {
-      setEventSearchName(null);
+      setEventSearchName(null); // Clear if ID is invalid or 0
     }
-  }, [formData.event_id, events]);
-
+  }, [formData.event_id, events]); // Depend on formData.event_id and events
 
   // --- Handlers ---
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -375,7 +379,7 @@ export default function DiscountManager() {
 
   const handleOpenCreateModal = () => {
     setCurrentDiscount(null);
-    resetForm();
+    resetForm(); // Reset form and eventSearchName
     setIsModalOpen(true);
   };
 
@@ -388,6 +392,9 @@ export default function DiscountManager() {
       start_date: discount.start_date,
       end_date: discount.end_date,
     });
+    // Set eventSearchName immediately for editing mode
+    const foundEvent = events.find(e => e.id === discount.event_id);
+    setEventSearchName(foundEvent ? foundEvent.event_name : "Event not found");
     setIsModalOpen(true);
   };
 
@@ -406,9 +413,9 @@ export default function DiscountManager() {
       discount_code: "",
       discount_percentage: 0,
       start_date: "",
-      end_date: "",
+      end_date: "", // Corrected: removed 'sdate'
     });
-    setEventSearchName(null);
+    setEventSearchName(null); // Crucial: Reset event search name on form reset
   };
 
   // --- Render ---
@@ -437,7 +444,7 @@ export default function DiscountManager() {
         <div className="grid grid-cols-7 gap-4 bg-gray-200 p-4 text-gray-800 font-bold">
           <span className="text-center">ID</span>
           <span>Event</span>
-          <span>Discount Code</span> {/* Changed header to "Discount Code" */}
+          <span>Discount Code</span>
           <span>Discount (%)</span>
           <span>Start Date</span>
           <span>End Date</span>
@@ -504,13 +511,14 @@ export default function DiscountManager() {
                 type="number"
                 name="event_id"
                 placeholder="e.g., 123"
+                // Conditional value: show empty string if 0 AND not editing (to prevent "0" on new form)
                 value={formData.event_id === 0 && !currentDiscount ? "" : formData.event_id}
                 onChange={handleInputChange}
                 required
               />
               {eventSearchName && (
                 <p className="text-sm text-gray-500 mt-1">
-                  **Event Name:** <span className="font-semibold text-blue-600">{eventSearchName}</span>
+                  <strong>Event Name:</strong> <span className="font-semibold text-blue-600">{eventSearchName}</span>
                 </p>
               )}
             </div>
@@ -518,7 +526,7 @@ export default function DiscountManager() {
             {/* Discount Code Input */}
             <div>
               <label htmlFor="discount_code" className="block text-sm font-medium text-gray-700 mb-1">
-                Discount Code (e.g., SUMMER20) {/* Changed label back */}
+                Discount Code (e.g., SUMMER20)
               </label>
               <Input
                 id="discount_code"

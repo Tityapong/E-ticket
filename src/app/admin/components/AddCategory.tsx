@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Pencil, Trash } from "lucide-react";
+import { Pencil, Trash, PlusCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton"; // Assuming you have a skeleton component for loading states
 
 interface Category {
   id: number;
@@ -31,7 +32,7 @@ const categorySchema = z.object({
     .min(1, "Category name is required")
     .max(50, "Category name must be less than 50 characters")
     .transform((name) => name.trim()),
-  description: z.string().optional(),
+  description: z.string().max(255, "Description must be less than 255 characters").optional(),
 });
 
 const checkDuplicateName = (
@@ -46,9 +47,7 @@ const checkDuplicateName = (
   );
 };
 
-// Use the environment variable directly, but provide a fallback for safety.
-// Ensure NEXT_PUBLIC_API_URL is set in .env.local or deployment config.
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://etickets.ticket.publicvm.com";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://ticket-provider-main-vlftr2.laravel.cloud";
 
 export default function CategoryManager() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -58,36 +57,22 @@ export default function CategoryManager() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [token, setToken] = useState<string | null>(null);
+  const [isAdding, setIsAdding] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
-  // Log API_BASE_URL to confirm it's being read correctly
-  useEffect(() => {
-    console.log("API Base URL (from env):", API_BASE_URL);
-  }, []);
 
   useEffect(() => {
-    const fetchAuthToken = async () => {
-      const savedToken = await getAuthToken();
-      setToken(savedToken);
-      console.log("Auth Token retrieved:", savedToken ? "Present" : "Missing"); // Indicate if token is present
-      if (!savedToken) {
-        toast.error("Authentication token not found. Please log in.");
-        setIsLoading(false); // Stop loading if no token
-      }
-    };
-    fetchAuthToken();
+    // console.log("API Base URL (from env):", API_BASE_URL); // Keep for debugging if needed
   }, []);
+
+  const token = getAuthToken();
 
   const fetchCategories = async () => {
-    if (!token) {
-      toast.error("Authentication required to fetch categories.");
-      setIsLoading(false);
-      return;
-    }
-    setIsLoading(true);
+
     try {
-      // Use API_BASE_URL consistently
       const response = await fetch(`${API_BASE_URL}/api/categories`, {
+        method: "GET", // Explicitly added GET method for clarity
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -95,7 +80,7 @@ export default function CategoryManager() {
       });
 
       if (!response.ok) {
-        const errorDetail = await response.text(); // Get more detailed error message from response body
+        const errorDetail = await response.text();
         console.error(`Failed to fetch categories: ${response.status} - ${errorDetail}`);
         throw new Error(`Failed to fetch categories: ${response.status} ${response.statusText}`);
       }
@@ -105,7 +90,6 @@ export default function CategoryManager() {
         id: cat.id,
         name: cat.category_name,
         description: cat.category_description,
-        // Ensure dates are valid before calling toLocaleString
         created: cat.created_at ? new Date(cat.created_at).toLocaleString() : 'N/A',
         updated: cat.updated_at ? new Date(cat.updated_at).toLocaleString() : 'N/A',
       }));
@@ -122,16 +106,17 @@ export default function CategoryManager() {
   useEffect(() => {
     if (token) {
       fetchCategories();
-    } else if (token === null) { // Only set loading to false if token is null, not undefined initially
+    } else if (token === null) {
       setIsLoading(false);
     }
-  }, [token]); // Depend on token to re-fetch when it becomes available
+  }, [token]);
 
   const addCategory = async () => {
     if (!token) {
       toast.error("You must be logged in to add a category.");
       return;
     }
+    setIsAdding(true);
 
     const validationResult = categorySchema.safeParse({
       name: newCategoryName,
@@ -140,16 +125,17 @@ export default function CategoryManager() {
 
     if (!validationResult.success) {
       toast.error(validationResult.error.errors[0].message);
+      setIsAdding(false);
       return;
     }
 
     if (checkDuplicateName(validationResult.data.name, categories)) {
       toast.error("A category with this name already exists");
+      setIsAdding(false);
       return;
     }
 
     try {
-      // Use API_BASE_URL consistently
       const response = await fetch(`${API_BASE_URL}/api/categories`, {
         method: "POST",
         headers: {
@@ -185,6 +171,8 @@ export default function CategoryManager() {
     } catch (error) {
       console.error("Error adding category:", error);
       toast.error(`An error occurred while adding the category: ${(error as Error).message}`);
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -194,6 +182,7 @@ export default function CategoryManager() {
       toast.error("You must be logged in to update a category.");
       return;
     }
+    setIsSaving(true);
 
     const validationResult = categorySchema.safeParse({
       name: currentCategory.name,
@@ -202,6 +191,7 @@ export default function CategoryManager() {
 
     if (!validationResult.success) {
       toast.error(validationResult.error.errors[0].message);
+      setIsSaving(false);
       return;
     }
 
@@ -213,7 +203,6 @@ export default function CategoryManager() {
     }
 
     try {
-      // Use API_BASE_URL consistently
       const response = await fetch(
         `${API_BASE_URL}/api/categories/${currentCategory.id}`,
         {
@@ -255,6 +244,8 @@ export default function CategoryManager() {
     } catch (error) {
       console.error("Error updating category:", error);
       toast.error(`An error occurred while updating the category: ${(error as Error).message}`);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -264,9 +255,9 @@ export default function CategoryManager() {
       toast.error("You must be logged in to delete a category.");
       return;
     }
+    setIsDeleting(true);
 
     try {
-      // Use API_BASE_URL consistently
       const response = await fetch(
         `${API_BASE_URL}/api/categories/${currentCategory.id}`,
         {
@@ -292,13 +283,43 @@ export default function CategoryManager() {
     } catch (error) {
       console.error("Error deleting category:", error);
       toast.error(`An error occurred while deleting the category: ${(error as Error).message}`);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  if (isLoading) {
+  // Render Skeletons during initial loading
+  if (isLoading && !token) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center">
-        Loading categories...
+      <div className="min-h-screen w-full p-6 bg-white overflow-auto">
+        <div className="flex flex-col md:flex-row items-center mb-4 gap-2">
+          <Skeleton className="w-full md:w-80 h-10" />
+          <Skeleton className="w-full md:w-80 h-10" />
+          <Skeleton className="w-full md:w-auto h-10" />
+        </div>
+        <div className="w-full border border-gray-300 rounded overflow-hidden shadow-sm">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 bg-gray-200 p-4 text-gray-800 font-bold text-sm">
+            <span className="hidden md:block text-center">ID</span>
+            <span>Name</span>
+            <span className="hidden md:block">Description</span>
+            <span className="hidden lg:block">Created At</span>
+            <span className="hidden lg:block">Updated At</span>
+            <span className="text-center">Action</span>
+          </div>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className={`grid grid-cols-2 md:grid-cols-6 gap-4 items-center p-4 text-sm ${i % 2 === 0 ? "bg-white" : "bg-gray-50"} border-b border-gray-300`}>
+              <Skeleton className="hidden md:block w-10 h-4 mx-auto" />
+              <Skeleton className="w-24 h-4" />
+              <Skeleton className="hidden md:block w-40 h-4" />
+              <Skeleton className="hidden lg:block w-32 h-4" />
+              <Skeleton className="hidden lg:block w-32 h-4" />
+              <div className="flex justify-center gap-1 md:gap-2">
+                <Skeleton className="w-8 h-8 rounded-full" />
+                <Skeleton className="w-8 h-8 rounded-full" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -306,8 +327,8 @@ export default function CategoryManager() {
   // If no token and not loading, show a message
   if (!token && !isLoading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center text-red-500">
-        Please log in to manage categories.
+      <div className="min-h-screen w-full flex items-center justify-center text-red-500 p-6">
+        <p className="text-lg font-medium">Please log in to manage categories.</p>
       </div>
     );
   }
@@ -319,31 +340,74 @@ export default function CategoryManager() {
           type="text"
           value={newCategoryName}
           onChange={(e) => setNewCategoryName(e.target.value)}
-          className="w-full md:w-80" // Make inputs responsive
+          className="w-full md:flex-1"
           placeholder="Enter category name"
+          disabled={isAdding}
         />
         <Input
           type="text"
           value={newCategoryDescription}
           onChange={(e) => setNewCategoryDescription(e.target.value)}
-          className="w-full md:w-80" // Make inputs responsive
+          className="w-full md:flex-1"
           placeholder="Enter category description (optional)"
+          disabled={isAdding}
         />
-        <Button onClick={addCategory} className="bg-blue-500 text-white w-full md:w-auto">
-          Add Category
+        <Button
+          onClick={addCategory}
+          className="bg-blue-500 text-white w-full md:w-auto"
+          disabled={isAdding}
+        >
+          {isAdding ? (
+            <>
+              <RotateCcw className="mr-2 h-4 w-4 animate-spin" /> Adding...
+            </>
+          ) : (
+            <>
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Category
+            </>
+          )}
+        </Button>
+        <Button
+          onClick={fetchCategories}
+          className="bg-gray-500 text-white w-full md:w-auto"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <RotateCcw className="mr-2 h-4 w-4 animate-spin" /> Refreshing...
+            </>
+          ) : (
+            <>
+              <RotateCcw className="mr-2 h-4 w-4" /> Refresh
+            </>
+          )}
         </Button>
       </div>
 
       <div className="w-full border border-gray-300 rounded overflow-hidden shadow-sm">
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4 bg-gray-200 p-4 text-gray-800 font-bold text-sm">
-          <span className="hidden md:block text-center">ID</span> {/* Hide ID on small screens */}
+          <span className="hidden md:block text-center">ID</span>
           <span>Name</span>
-          <span className="hidden md:block">Description</span> {/* Hide desc on small screens */}
-          <span className="hidden lg:block">Created At</span> {/* Hide dates on smaller screens */}
+          <span className="hidden md:block">Description</span>
+          <span className="hidden lg:block">Created At</span>
           <span className="hidden lg:block">Updated At</span>
           <span className="text-center">Action</span>
         </div>
-        {categories.length === 0 && !isLoading && token ? (
+        {isLoading && token ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className={`grid grid-cols-2 md:grid-cols-6 gap-4 items-center p-4 text-sm ${i % 2 === 0 ? "bg-white" : "bg-gray-50"} border-b border-gray-300`}>
+              <Skeleton className="hidden md:block w-10 h-4 mx-auto" />
+              <Skeleton className="w-24 h-4" />
+              <Skeleton className="hidden md:block w-40 h-4" />
+              <Skeleton className="hidden lg:block w-32 h-4" />
+              <Skeleton className="hidden lg:block w-32 h-4" />
+              <div className="flex justify-center gap-1 md:gap-2">
+                <Skeleton className="w-8 h-8 rounded-full" />
+                <Skeleton className="w-8 h-8 rounded-full" />
+              </div>
+            </div>
+          ))
+        ) : categories.length === 0 ? (
           <div className="p-4 text-center text-gray-500">No categories found. Add a new one!</div>
         ) : (
           categories.map((category, index) => (
@@ -366,6 +430,7 @@ export default function CategoryManager() {
                     setCurrentCategory(category);
                     setIsEditDialogOpen(true);
                   }}
+                  aria-label={`Edit ${category.name}`}
                 >
                   <Pencil size={16} className="text-blue-500" />
                 </Button>
@@ -376,6 +441,7 @@ export default function CategoryManager() {
                     setCurrentCategory(category);
                     setIsDeleteDialogOpen(true);
                   }}
+                  aria-label={`Delete ${category.name}`}
                 >
                   <Trash size={16} className="text-red-500" />
                 </Button>
@@ -404,6 +470,7 @@ export default function CategoryManager() {
               }
               placeholder="Category Name"
               aria-label="Category Name"
+              disabled={isSaving}
             />
             <Input
               value={currentCategory?.description || ""}
@@ -414,10 +481,19 @@ export default function CategoryManager() {
               }
               placeholder="Category Description"
               aria-label="Category Description"
+              disabled={isSaving}
             />
           </div>
           <DialogFooter>
-            <Button onClick={editCategory}>Save changes</Button>
+            <Button onClick={editCategory} disabled={isSaving}>
+              {isSaving ? (
+                <>
+                  <RotateCcw className="mr-2 h-4 w-4 animate-spin" /> Saving...
+                </>
+              ) : (
+                "Save changes"
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -435,11 +511,18 @@ export default function CategoryManager() {
             <Button
               variant="outline"
               onClick={() => setIsDeleteDialogOpen(false)}
+              disabled={isDeleting}
             >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={deleteCategory}>
-              Delete
+            <Button variant="destructive" onClick={deleteCategory} disabled={isDeleting}>
+              {isDeleting ? (
+                <>
+                  <RotateCcw className="mr-2 h-4 w-4 animate-spin" /> Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
